@@ -16,7 +16,14 @@ window.PROJECTS = [
     "status": "online",
     "color": "cyan",
     "description": "A reader for books and language learning. Upload a book, read it right in your browser and learn new words with flashcards.",
-    "tags": [".txt", ".fb2", ".epub", ".rtf", ".pdf", ".docx"],
+    "tags": [
+      ".txt",
+      ".fb2",
+      ".epub",
+      ".rtf",
+      ".pdf",
+      ".docx"
+    ],
     "visual": "book",
     "button": {
       "text": "Open the reader ↗",
@@ -31,7 +38,12 @@ window.PROJECTS = [
     "status": "play online",
     "color": "pink",
     "description": "A multiplayer maze that never stops changing. Collect four crystals of your color, steal your rivals' gems, rotate maze tiles, teleport — and be the first to get back to your corner. Watch out for bears!",
-    "tags": ["up to 4 players", "bots", "private rooms", "plays on mobile"],
+    "tags": [
+      "up to 4 players",
+      "bots",
+      "private rooms",
+      "plays on mobile"
+    ],
     "visual": "maze",
     "button": {
       "text": "Play ↗",
@@ -46,7 +58,10 @@ window.PROJECTS = [
     "icon": "youtube",
     "color": "red",
     "description": "Collects links to every video on a YouTube channel. Paste the channel URL — get the full list of videos.",
-    "tags": ["Python", "yt-dlp"],
+    "tags": [
+      "Python",
+      "yt-dlp"
+    ],
     "visual": "terminal",
     "terminal": {
       "ask": "Paste a YouTube channel link: ",
@@ -68,11 +83,26 @@ window.PROJECTS = [
       "file": "downloads/youtube_channel_links.py",
       "install": "pip install yt-dlp",
       "notes": [
-        {"lines": "1", "text": "Imports yt-dlp — the library that knows how to talk to YouTube."},
-        {"lines": "4-5", "text": "Asks for the channel link, strips extra parameters and points it at the channel's Videos tab."},
-        {"lines": "7-8", "text": "Grabs the list of videos without downloading a single one (extract_flat)."},
-        {"lines": "10-11", "text": "Prints the link of every video, one per line."},
-        {"lines": "13", "text": "Waits for Enter, so the window doesn't close before you copy the links."}
+        {
+          "lines": "1",
+          "text": "Imports yt-dlp — the library that knows how to talk to YouTube."
+        },
+        {
+          "lines": "4-5",
+          "text": "Asks for the channel link, strips extra parameters and points it at the channel's Videos tab."
+        },
+        {
+          "lines": "7-8",
+          "text": "Grabs the list of videos without downloading a single one (extract_flat)."
+        },
+        {
+          "lines": "10-11",
+          "text": "Prints the link of every video, one per line."
+        },
+        {
+          "lines": "13",
+          "text": "Waits for Enter, so the window doesn't close before you copy the links."
+        }
       ]
     }
   },
@@ -84,7 +114,11 @@ window.PROJECTS = [
     "icon": "tabs",
     "color": "cyan",
     "description": "Copies the URLs of all open browser tabs. Enter the number of tabs, switch to your browser — the tool walks through them and prints every link.",
-    "tags": ["Python", "PyAutoGUI", "pyperclip"],
+    "tags": [
+      "Python",
+      "PyAutoGUI",
+      "pyperclip"
+    ],
     "visual": "terminal",
     "terminal": {
       "ask": "How many tabs are open in the browser? ",
@@ -106,12 +140,30 @@ window.PROJECTS = [
       "file": "downloads/browser_tab_links.py",
       "install": "pip install pyautogui pyperclip",
       "notes": [
-        {"lines": "1-3", "text": "Loads the tools: time for pauses, pyautogui to press keys, pyperclip to read the clipboard."},
-        {"lines": "5-7", "text": "Asks how many tabs to visit, then gives you 5 seconds to switch to the browser."},
-        {"lines": "10-11", "text": "Ctrl+L selects the address bar of the current tab."},
-        {"lines": "13-14", "text": "Ctrl+C copies the URL to the clipboard."},
-        {"lines": "16-18", "text": "Ctrl+Tab jumps to the next tab, and the copied URL is printed."},
-        {"lines": "20-21", "text": "Done! Waits for Enter before closing."}
+        {
+          "lines": "1-3",
+          "text": "Loads the tools: time for pauses, pyautogui to press keys, pyperclip to read the clipboard."
+        },
+        {
+          "lines": "5-7",
+          "text": "Asks how many tabs to visit, then gives you 5 seconds to switch to the browser."
+        },
+        {
+          "lines": "10-11",
+          "text": "Ctrl+L selects the address bar of the current tab."
+        },
+        {
+          "lines": "13-14",
+          "text": "Ctrl+C copies the URL to the clipboard."
+        },
+        {
+          "lines": "16-18",
+          "text": "Ctrl+Tab jumps to the next tab, and the copied URL is printed."
+        },
+        {
+          "lines": "20-21",
+          "text": "Done! Waits for Enter before closing."
+        }
       ]
     }
   },
@@ -144,7 +196,12 @@ window.PROJECTS = [
     "status": "online",
     "color": "lime",
     "description": "Step inside the Matrix. Fly through endless digital rain toward a galaxy of glowing code, watch the classic falling symbols, and see 3D shapes assembled from thousands of characters that scatter and rebuild when you switch. Drop in your own 3D model (.glb, .gltf, .obj, .fbx, .stl, .ply) — the code builds it from symbols and remembers it for next time.",
-    "tags": ["Three.js", "WebGL", "your own 3D models", "100k+ symbols"],
+    "tags": [
+      "Three.js",
+      "WebGL",
+      "your own 3D models",
+      "100k+ symbols"
+    ],
     "visual": "hacker",
     "button": {
       "text": "Enter the Matrix ↗",
@@ -159,7 +216,13 @@ window.PROJECTS = [
     "icon": "chip",
     "color": "pink",
     "description": "27 ready-made Python modules for Raspberry Pi sensors and devices: LEDs, buttons, servos, displays, RFID, DHT, distance, motion, IR remote, nRF24 radio and more. One line instead of a page of GPIO code — led.on(17), servo.angle(18, 90), distance.cm(). Every module prints its own wiring diagram, and all libraries are bundled inside.",
-    "tags": ["Python", "GPIO", "I2C", "SPI", "27 modules"],
+    "tags": [
+      "Python",
+      "GPIO",
+      "I2C",
+      "SPI",
+      "27 modules"
+    ],
     "visual": "image",
     "image": "assets/raspberry-pi.svg",
     "download": {
@@ -173,5 +236,35 @@ window.PROJECTS = [
       "First run: `python3 pi.py` checks the board; `bash libs/pi_install/install_on_pi.sh` installs anything missing.",
       "Every module has `.pins()` (wiring diagram) and `.help()` (all commands)."
     ]
+  },
+  {
+    "id": "combinepdf",
+    "section": "download",
+    "title": "CombinePDF",
+    "badge": "Tool · Windows",
+    "color": "red",
+    "description": "PDF Merger\nA simple and user-friendly desktop application built with Python (PyQt6) for quickly combining multiple PDF files into a single document.\n\nKey Features:\n\nDrag-and-Drop: Easily drop PDF files directly into the application window.\n\nCustom Order: Effortlessly sort and rearrange files using your mouse before merging.\n\nOffline Processing: Secure local processing without requiring an internet connection.\n\nClean Interface: A lightweight and intuitive graphical interface.",
+    "tags": [
+      "Python",
+      "pypdf",
+      "PyQt6"
+    ],
+    "icon": "book",
+    "visual": "terminal",
+    "terminal": {
+      "ask": "Can you combine PDF files?",
+      "output": [
+        "Of course! It's easy for me."
+      ]
+    },
+    "download": {
+      "file": "downloads/CombinePDF.exe",
+      "label": "Download .exe",
+      "size": "52.1 MB"
+    },
+    "code": {
+      "file": "downloads/olimpiada.py",
+      "install": "pip install PyQt6 pypdf"
+    }
   }
 ];

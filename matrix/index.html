@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix — infinity</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; cursor: crosshair; touch-action: none; }
+  #intro {
+    position: fixed; top: 28px; left: 32px; right: 32px;
+    color: #39ff7a; font: 20px/1.6 ui-monospace, Consolas, monospace;
+    text-shadow: 0 0 8px rgba(57, 255, 122, .9), 0 0 22px rgba(57, 255, 122, .45);
+    white-space: pre-wrap; pointer-events: none; transition: opacity 1.6s;
+  }
+  #intro::after { content: "█"; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hint {
+    position: fixed; bottom: 14px; width: 100%; text-align: center; pointer-events: none;
+    color: rgba(57, 255, 122, .55); font: 12px ui-monospace, Consolas, monospace; letter-spacing: .08em;
+  }
+  #fallback { position: fixed; inset: 0; display: none; place-items: center; color: #39ff7a; font: 16px ui-monospace, monospace; }
+  .demos { position: fixed; top: 14px; right: 14px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 2; }
+  .demos a { padding: 6px 11px; border: 1px solid rgba(40, 255, 110, .3); border-radius: 8px; background: rgba(0, 14, 5, .75); color: #5dff95; font: 600 12px ui-monospace, Consolas, monospace; text-decoration: none; }
+  .demos a:hover { border-color: #2bff73; }
+  .demos a.on { background: #16c95a; border-color: #16c95a; color: #001a08; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<nav class="demos">
+  <a href="../index.html">&larr; FENIX</a>
+  <a href="index.html" class="on">Flight</a>
+  <a href="rain.html">Rain</a>
+  <a href="shapes.html">3D shapes</a>
+</nav>
+<div id="intro"></div>
+<div class="hint">move the mouse to look around · hold the button to fly faster</div>
+<div id="fallback">Your browser doesn't support WebGL</div>
+
+<script type="module">
+import * as THREE from "three";
+import {EffectComposer} from "three/addons/postprocessing/EffectComposer.js";
+import {RenderPass} from "three/addons/postprocessing/RenderPass.js";
+import {UnrealBloomPass} from "three/addons/postprocessing/UnrealBloomPass.js";
+import {OutputPass} from "three/addons/postprocessing/OutputPass.js";
+
+/* ---------- renderer, camera, glow ---------- */
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({powerPreference: "high-performance"});
+} catch {
+  document.getElementById("fallback").style.display = "grid";
+  throw new Error("no WebGL");
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.5, 6000);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.35, 0.25);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+/* ---------- glyph atlas: 64 mirrored symbols on one texture ---------- */
+const GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ012345789Z:=*+<>¦|";
+const atlasCanvas = document.createElement("canvas");
+atlasCanvas.width = atlasCanvas.height = 1024;
+const a = atlasCanvas.getContext("2d");
+a.fillStyle = "#000";
+a.fillRect(0, 0, 1024, 1024);
+a.fillStyle = "#fff";
+a.font = "bold 92px 'MS Gothic', 'Yu Gothic', 'Noto Sans JP', monospace";
+a.textAlign = "center";
+a.textBaseline = "middle";
+for (let i = 0; i < 64; i++) {
+  a.save();
+  a.translate((i % 8) * 128 + 64, Math.floor(i / 8) * 128 + 66);
+  a.scale(-1, 1);
+  a.fillText(GLYPHS[i % GLYPHS.length], 0, 0);
+  a.restore();
+}
+const atlas = new THREE.CanvasTexture(atlasCanvas);
+atlas.anisotropy = 4;
+
+const FRAGMENT = `
+  uniform sampler2D uAtlas;
+  varying vec3 vColor;
+  varying float vI;
+  varying float vGlyph;
+  void main() {
+    if (vI < 0.004) discard;
+    vec2 pc = gl_PointCoord;
+    float gx = mod(vGlyph, 8.0);
+    float gy = floor(vGlyph / 8.0);
+    float g = texture2D(uAtlas, vec2((gx + pc.x) / 8.0, 1.0 - (gy + pc.y) / 8.0)).r;
+    gl_FragColor = vec4(vColor * g * vI, 1.0);
+  }`;
+
+const shared = {uTime: {value: 0}, uScale: {value: 1}, uAtlas: {value: atlas}};
+const material = (vertexShader, extra) => new THREE.ShaderMaterial({
+  uniforms: {...shared, ...extra},
+  vertexShader,
+  fragmentShader: FRAGMENT,
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+
+/* ---------- endless rain: columns of symbols flying towards the camera ---------- */
+const COLUMNS = 1700, CELLS = 30, SPACING = 2.8, DEPTH = 1000;
+const rainGeo = new THREE.BufferGeometry();
+const rp = new Float32Array(COLUMNS * CELLS * 3);
+const cell = new Float32Array(COLUMNS * CELLS), seed = new Float32Array(COLUMNS * CELLS);
+const speed = new Float32Array(COLUMNS * CELLS), trail = new Float32Array(COLUMNS * CELLS);
+for (let c = 0, k = 0; c < COLUMNS; c++) {
+  let x = (Math.random() * 2 - 1) * 320;
+  if (Math.abs(x) < 6) x += Math.sign(x || 1) * 6;
+  const top = -70 + Math.random() * 210, z = Math.random() * DEPTH;
+  const s = Math.random(), sp = 7 + Math.random() * 16, tr = 10 + Math.random() * 16;
+  for (let i = 0; i < CELLS; i++, k++) {
+    rp.set([x, top - i * SPACING, z], k * 3);
+    cell[k] = i; seed[k] = s; speed[k] = sp; trail[k] = tr;
+  }
+}
+rainGeo.setAttribute("position", new THREE.BufferAttribute(rp, 3));
+rainGeo.setAttribute("aCell", new THREE.BufferAttribute(cell, 1));
+rainGeo.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
+rainGeo.setAttribute("aSpeed", new THREE.BufferAttribute(speed, 1));
+rainGeo.setAttribute("aTrail", new THREE.BufferAttribute(trail, 1));
+
+const rainMat = material(`
+  attribute float aCell; attribute float aSeed; attribute float aSpeed; attribute float aTrail;
+  uniform float uTime; uniform float uTravel; uniform float uScale;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    vec3 p = position;
+    p.z = mod(p.z + uTravel, ${DEPTH.toFixed(1)}) - ${DEPTH.toFixed(1)} + 20.0;
+    float head = mod(uTime * aSpeed + aSeed * 97.0, ${CELLS.toFixed(1)} + aTrail + 8.0);
+    float d = head - aCell;
+    float b = (d >= 0.0 && d < aTrail) ? pow(1.0 - d / aTrail, 1.7) : 0.0;
+    float isHead = (d >= 0.0 && d < 1.0) ? 1.0 : 0.0;
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    float dist = -mv.z;
+    float fog = smoothstep(${DEPTH.toFixed(1)}, ${(DEPTH * 0.18).toFixed(1)}, dist) * smoothstep(5.0, 28.0, dist);
+    vI = b * fog * (0.85 + 0.3 * isHead);
+    vColor = mix(vec3(0.0, 0.3, 0.07), vec3(0.16, 1.0, 0.36), b);
+    float flicker = step(0.55, fract(aSeed * 13.7 + aCell * 0.37));
+    vGlyph = floor(mod(aSeed * 977.0 + aCell * 31.0 + flicker * floor(uTime * (3.0 + aSeed * 6.0)), 64.0));
+    gl_PointSize = 3.3 * uScale / max(dist, 1.0);
+    gl_Position = projectionMatrix * mv;
+  }`, {uTravel: {value: 0}});
+scene.add(new THREE.Points(rainGeo, rainMat));
+
+/* ---------- galaxy and star dust made of symbols ---------- */
+const SKY_VERTEX = `
+  attribute float aSeed; attribute float aBright; attribute vec3 aColor;
+  uniform float uTime; uniform float uScale; uniform float uSize; uniform float uGain;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float dist = -mv.z;
+    float twinkle = 0.55 + 0.45 * sin(uTime * (0.4 + aSeed * 2.6) + aSeed * 60.0);
+    vI = aBright * twinkle * uGain;
+    vColor = aColor;
+    vGlyph = floor(mod(aSeed * 977.0 + floor(uTime * (0.2 + aSeed * 1.8)), 64.0));
+    gl_PointSize = uSize * (0.55 + aBright) * uScale / max(dist, 1.0);
+    gl_Position = projectionMatrix * mv;
+  }`;
+
+function skyPoints(count, place, size, gain) {
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3), col = new Float32Array(count * 3);
+  const sd = new Float32Array(count), br = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const p = place(i);
+    pos.set(p.pos, i * 3);
+    col.set(p.color, i * 3);
+    sd[i] = Math.random();
+    br[i] = p.bright;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("aColor", new THREE.BufferAttribute(col, 3));
+  geo.setAttribute("aSeed", new THREE.BufferAttribute(sd, 1));
+  geo.setAttribute("aBright", new THREE.BufferAttribute(br, 1));
+  return new THREE.Points(geo, material(SKY_VERTEX, {uSize: {value: size}, uGain: {value: gain}}));
+}
+
+const RADIUS = 1150, ARMS = 5;
+const galaxy = skyPoints(36000, i => {
+  const r = (0.03 + 0.97 * Math.pow(Math.random(), 1.25)) * RADIUS;
+  const core = 1 - r / RADIUS;
+  const angle = (i % ARMS) / ARMS * Math.PI * 2 + r * 0.0042;
+  const spread = () => Math.pow(Math.random(), 2.6) * (Math.random() < 0.5 ? 1 : -1) * (40 + r * 0.32);
+  return {
+    pos: [Math.cos(angle) * r + spread(), spread() * 0.22 * (0.3 + core), Math.sin(angle) * r + spread()],
+    color: [0.02 + 0.08 * core, 0.5 + 0.5 * core, 0.12 + 0.16 * core],
+    bright: 0.14 + core * core * 0.55,
+  };
+}, 8, 0.5);
+const galaxyTilt = new THREE.Group();
+galaxyTilt.position.set(0, 90, -1450);
+galaxyTilt.rotation.set(1.05, 0, -0.35);
+galaxyTilt.add(galaxy);
+scene.add(galaxyTilt);
+
+const dust = skyPoints(7000, () => {
+  const v = new THREE.Vector3().randomDirection().multiplyScalar(2600 + Math.random() * 900);
+  const w = Math.random();
+  return {pos: v.toArray(), color: [0.02 + w * 0.06, 0.4 + w * 0.6, 0.1 + w * 0.16], bright: 0.08 + Math.pow(Math.random(), 4) * 0.9};
+}, 11, 0.8);
+scene.add(dust);
+
+/* ---------- motion: look around with the mouse, hold to fly faster ---------- */
+let travel = 0, flySpeed = 9, targetSpeed = 9;
+const look = {x: 0, y: 0}, aim = {x: 0, y: 0};
+addEventListener("pointermove", e => {
+  aim.x = (e.clientX / innerWidth - 0.5) * 2;
+  aim.y = (e.clientY / innerHeight - 0.5) * 2;
+});
+addEventListener("pointerdown", () => { targetSpeed = 110; });
+addEventListener("pointerup", () => { targetSpeed = 9; });
+addEventListener("pointercancel", () => { targetSpeed = 9; });
+
+function resize() {
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+
+const clock = new THREE.Clock();
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+  flySpeed += (targetSpeed - flySpeed) * 0.035;
+  travel += flySpeed * dt;
+  const warp = (flySpeed - 9) / 101;
+
+  look.x += (aim.x - look.x) * 0.03;
+  look.y += (aim.y - look.y) * 0.03;
+  camera.rotation.set(-look.y * 0.22 + Math.sin(t * 0.13) * 0.03, -look.x * 0.35 + Math.sin(t * 0.09) * 0.05, Math.sin(t * 0.07) * 0.04);
+  camera.fov = 70 + warp * 25;
+  camera.updateProjectionMatrix();
+
+  shared.uTime.value = t;
+  shared.uScale.value = renderer.domElement.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+  rainMat.uniforms.uTravel.value = travel;
+  galaxy.rotation.y += dt * (0.018 + warp * 0.05);
+  dust.rotation.y += dt * 0.002;
+  bloom.strength = 0.6 + warp * 0.5;
+
+  composer.render();
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ---------- typed intro ---------- */
+const intro = document.getElementById("intro");
+const lines = ["Wake up, FENIX...", "The Matrix has no end.", "Follow the white rabbit."];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+(async () => {
+  await wait(900);
+  for (const line of lines) {
+    intro.textContent = "";
+    for (const ch of line) {
+      intro.textContent += ch;
+      await wait(70 + Math.random() * 90);
+    }
+    await wait(1700);
+  }
+  intro.style.opacity = "0";
+})();
+</script>
+</body>
+</html>

@@ -135,5 +135,43 @@ window.PROJECTS = [
       "Turn on “Developer mode” in the top right corner.",
       "Click “Load unpacked” and pick the folder."
     ]
+  },
+  {
+    "id": "matrix",
+    "section": "online",
+    "title": "Matrix Code Space",
+    "badge": "3D · WebGL",
+    "status": "online",
+    "color": "lime",
+    "description": "Step inside the Matrix. Fly through endless digital rain toward a galaxy of glowing code, watch the classic falling symbols, and see 3D shapes assembled from thousands of characters that scatter and rebuild when you switch. Drop in your own 3D model (.glb, .gltf, .obj, .fbx, .stl, .ply) — the code builds it from symbols and remembers it for next time.",
+    "tags": ["Three.js", "WebGL", "your own 3D models", "100k+ symbols"],
+    "visual": "hacker",
+    "button": {
+      "text": "Enter the Matrix ↗",
+      "link": "matrix/index.html"
+    }
+  },
+  {
+    "id": "raspberry-pi-modules",
+    "section": "download",
+    "title": "Raspberry Pi Modules",
+    "badge": "Library · Raspberry Pi",
+    "icon": "chip",
+    "color": "pink",
+    "description": "27 ready-made Python modules for Raspberry Pi sensors and devices: LEDs, buttons, servos, displays, RFID, DHT, distance, motion, IR remote, nRF24 radio and more. One line instead of a page of GPIO code — led.on(17), servo.angle(18, 90), distance.cm(). Every module prints its own wiring diagram, and all libraries are bundled inside.",
+    "tags": ["Python", "GPIO", "I2C", "SPI", "27 modules"],
+    "visual": "image",
+    "image": "assets/raspberry-pi.svg",
+    "download": {
+      "file": "downloads/raspberry_pi.zip",
+      "label": "Download .zip",
+      "size": "12.4 MB"
+    },
+    "install": [
+      "Unzip it and copy the `raspberry_pi` folder to your Raspberry Pi.",
+      "Put your own scripts in that folder and use `import led`, `import button`…",
+      "First run: `python3 pi.py` checks the board; `bash libs/pi_install/install_on_pi.sh` installs anything missing.",
+      "Every module has `.pins()` (wiring diagram) and `.help()` (all commands)."
+    ]
   }
 ];

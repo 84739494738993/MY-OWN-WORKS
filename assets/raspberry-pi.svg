@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#14261c"/>
+      <stop offset="1" stop-color="#05070a"/>
+    </radialGradient>
+    <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#127a3a"/>
+      <stop offset="1" stop-color="#0a4f26"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3e8e6"/>
+      <stop offset="1" stop-color="#8d9693"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a2e2d"/>
+      <stop offset="1" stop-color="#121514"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .blink { animation: blink 1.4s steps(1) infinite; }
+      .blink.slow { animation-duration: 2.3s; }
+      @keyframes blink { 50% { opacity: .15; } }
+      .flow { stroke-dasharray: 6 10; animation: flow 1.2s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -16; } }
+    </style>
+  </defs>
+
+  <rect width="600" height="320" fill="url(#bg)"/>
+
+  <!-- jumper wires leaving the GPIO header to the sensors -->
+  <g fill="none" stroke-width="5" stroke-linecap="round">
+    <path d="M188 74 C 180 30, 120 20, 70 -10" stroke="#f472b6"/>
+    <path d="M236 74 C 236 30, 230 10, 222 -10" stroke="#fbbf24"/>
+    <path d="M300 58 C 310 20, 360 5, 380 -10" stroke="#22d3ee"/>
+    <path d="M380 74 C 400 30, 470 18, 530 -10" stroke="#a3e635"/>
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round" class="flow">
+    <path d="M188 74 C 180 30, 120 20, 70 -10"/>
+    <path d="M380 74 C 400 30, 470 18, 530 -10"/>
+  </g>
+
+  <!-- board -->
+  <rect x="110" y="48" width="380" height="226" rx="16" fill="url(#pcb)" stroke="#1fae55" stroke-width="2"/>
+  <g fill="none" stroke="#2fd16c" stroke-opacity=".28" stroke-width="2">
+    <path d="M140 250 H220 V200 H250"/>
+    <path d="M140 232 H200 V190"/>
+    <path d="M320 225 H360 V250 H440"/>
+    <path d="M330 120 V100 H420"/>
+    <path d="M240 210 V240 H300"/>
+  </g>
+  <g fill="#05070a" stroke="#d4a63a" stroke-width="3">
+    <circle cx="132" cy="70" r="7"/>
+    <circle cx="468" cy="70" r="7"/>
+    <circle cx="132" cy="252" r="7"/>
+    <circle cx="468" cy="252" r="7"/>
+  </g>
+
+  <!-- 40-pin GPIO header -->
+  <rect x="160" y="56" width="248" height="36" rx="3" fill="#0b0d0c"/>
+  <g fill="#e2b350">
+    <rect x="166" y="61" width="8" height="8"/><rect x="178" y="61" width="8" height="8"/><rect x="190" y="61" width="8" height="8"/><rect x="202" y="61" width="8" height="8"/><rect x="214" y="61" width="8" height="8"/>
+    <rect x="226" y="61" width="8" height="8"/><rect x="238" y="61" width="8" height="8"/><rect x="250" y="61" width="8" height="8"/><rect x="262" y="61" width="8" height="8"/><rect x="274" y="61" width="8" height="8"/>
+    <rect x="286" y="61" width="8" height="8"/><rect x="298" y="61" width="8" height="8"/><rect x="310" y="61" width="8" height="8"/><rect x="322" y="61" width="8" height="8"/><rect x="334" y="61" width="8" height="8"/>
+    <rect x="346" y="61" width="8" height="8"/><rect x="358" y="61" width="8" height="8"/><rect x="370" y="61" width="8" height="8"/><rect x="382" y="61" width="8" height="8"/><rect x="394" y="61" width="8" height="8"/>
+    <rect x="166" y="79" width="8" height="8"/><rect x="178" y="79" width="8" height="8"/><rect x="190" y="79" width="8" height="8"/><rect x="202" y="79" width="8" height="8"/><rect x="214" y="79" width="8" height="8"/>
+    <rect x="226" y="79" width="8" height="8"/><rect x="238" y="79" width="8" height="8"/><rect x="250" y="79" width="8" height="8"/><rect x="262" y="79" width="8" height="8"/><rect x="274" y="79" width="8" height="8"/>
+    <rect x="286" y="79" width="8" height="8"/><rect x="298" y="79" width="8" height="8"/><rect x="310" y="79" width="8" height="8"/><rect x="322" y="79" width="8" height="8"/><rect x="334" y="79" width="8" height="8"/>
+    <rect x="346" y="79" width="8" height="8"/><rect x="358" y="79" width="8" height="8"/><rect x="370" y="79" width="8" height="8"/><rect x="382" y="79" width="8" height="8"/><rect x="394" y="79" width="8" height="8"/>
+  </g>
+
+  <!-- processor, memory and small chips -->
+  <rect x="200" y="128" width="96" height="96" rx="8" fill="url(#chip)" stroke="#4a524f" stroke-width="2"/>
+  <rect x="216" y="144" width="64" height="64" rx="5" fill="none" stroke="#3a413e" stroke-width="2"/>
+  <text x="248" y="182" text-anchor="middle" font-family="monospace" font-size="15" font-weight="700" fill="#3fe07c" opacity=".85">GPIO</text>
+  <rect x="318" y="134" width="70" height="52" rx="5" fill="url(#chip)" stroke="#4a524f" stroke-width="2"/>
+  <rect x="318" y="200" width="44" height="30" rx="4" fill="url(#chip)" stroke="#4a524f" stroke-width="2"/>
+  <rect x="148" y="150" width="30" height="40" rx="3" fill="#1b1f1d"/>
+
+  <!-- ports: USB x2 + Ethernet on the right, HDMI and power at the bottom -->
+  <rect x="452" y="96" width="70" height="52" rx="4" fill="url(#metal)"/>
+  <rect x="462" y="108" width="50" height="10" rx="2" fill="#2b3230"/>
+  <rect x="462" y="126" width="50" height="10" rx="2" fill="#2b3230"/>
+  <rect x="452" y="156" width="70" height="52" rx="4" fill="url(#metal)"/>
+  <rect x="462" y="168" width="50" height="10" rx="2" fill="#2b3230"/>
+  <rect x="462" y="186" width="50" height="10" rx="2" fill="#2b3230"/>
+  <rect x="448" y="216" width="74" height="50" rx="4" fill="url(#metal)"/>
+  <rect x="462" y="228" width="44" height="26" rx="2" fill="#2b3230"/>
+  <rect x="160" y="262" width="36" height="20" rx="3" fill="url(#metal)"/>
+  <rect x="226" y="262" width="30" height="18" rx="3" fill="url(#metal)"/>
+  <rect x="270" y="262" width="30" height="18" rx="3" fill="url(#metal)"/>
+
+  <!-- status LEDs -->
+  <circle cx="152" cy="212" r="5" fill="#2bff73" filter="url(#glow)" class="blink"/>
+  <circle cx="168" cy="212" r="5" fill="#ff5a6e" filter="url(#glow)" class="blink slow"/>
+</svg>

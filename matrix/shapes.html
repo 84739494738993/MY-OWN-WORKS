@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix — 3D shapes</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; cursor: grab; touch-action: none; }
+  canvas:active { cursor: grabbing; }
+  .demos { position: fixed; top: 14px; right: 14px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 2; }
+  .demos a, .shapes button { padding: 6px 11px; border: 1px solid rgba(40, 255, 110, .3); border-radius: 8px; background: rgba(0, 14, 5, .75); color: #5dff95; font: 600 12px ui-monospace, Consolas, monospace; text-decoration: none; cursor: pointer; }
+  .demos a:hover, .shapes button:hover { border-color: #2bff73; }
+  .demos a.on, .shapes button.on { background: #16c95a; border-color: #16c95a; color: #001a08; }
+  .shapes { position: fixed; left: 50%; bottom: 44px; transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: min(640px, 94vw); z-index: 2; }
+  .shapes button { font-size: 13px; padding: 7px 13px; }
+  .shapes .load { border-style: dashed; }
+  .status { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); max-width: 90vw; text-align: center; color: #5dff95; font: 13px ui-monospace, Consolas, monospace; pointer-events: none; transition: opacity .4s; }
+  .status.error { color: #ff8f8f; }
+  .model { display: inline-flex; }
+  .model button:first-child { border-radius: 8px 0 0 8px; }
+  .model .remove { border-left: 0; border-radius: 0 8px 8px 0; padding: 7px 9px; color: rgba(93, 255, 149, .55); }
+  .model .remove:hover { color: #ff8f8f; border-color: rgba(255, 143, 143, .6); }
+  .model .remove.armed { background: rgba(255, 90, 90, .18); color: #ff8f8f; border-color: rgba(255, 143, 143, .7); }
+  body.dragging::after { content: "Drop the file — the symbols will build your model"; position: fixed; inset: 16px; display: grid; place-items: center; border: 2px dashed rgba(40, 255, 110, .6); border-radius: 18px; background: rgba(0, 20, 6, .55); color: #5dff95; font: 600 20px ui-monospace, Consolas, monospace; z-index: 5; pointer-events: none; }
+  .hint { position: fixed; bottom: 14px; width: 100%; text-align: center; pointer-events: none; color: rgba(40, 255, 110, .5); font: 12px ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<nav class="demos">
+  <a href="../index.html">&larr; FENIX</a>
+  <a href="index.html">Flight</a>
+  <a href="rain.html">Rain</a>
+  <a href="shapes.html" class="on">3D shapes</a>
+</nav>
+<div class="shapes">
+  <button data-shape="sphere" class="on">Sphere</button>
+  <button data-shape="torus">Torus</button>
+  <button data-shape="knot">Knot</button>
+  <button data-shape="cube">Cube</button>
+  <button data-shape="crystal">Crystal</button>
+  <button data-shape="helix">DNA</button>
+  <button data-shape="text">FENIX</button>
+  <button id="loadModel" class="load">Load 3D model…</button>
+  <input type="file" id="modelFile" accept=".glb,.gltf,.obj,.stl,.fbx,.ply" hidden>
+</div>
+<div class="status" id="status" role="status"></div>
+<div class="hint">drag to rotate · scroll to zoom · drop a model file anywhere</div>
+
+<script type="module">
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {MeshSurfaceSampler} from "three/addons/math/MeshSurfaceSampler.js";
+import {EffectComposer} from "three/addons/postprocessing/EffectComposer.js";
+import {RenderPass} from "three/addons/postprocessing/RenderPass.js";
+import {UnrealBloomPass} from "three/addons/postprocessing/UnrealBloomPass.js";
+import {OutputPass} from "three/addons/postprocessing/OutputPass.js";
+
+const renderer = new THREE.WebGLRenderer({powerPreference: "high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.05, 20000);
+camera.position.set(0, 1.2, 7.2);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.1;
+controls.minDistance = 2.5;
+controls.maxDistance = 16;
+// keep the view roughly side-on so the rain always reads as falling columns
+controls.minPolarAngle = 0.85;
+controls.maxPolarAngle = 2.2;
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.35, 0.25));
+composer.addPass(new OutputPass());
+
+/* ---------- glyph atlas ---------- */
+const GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ012345789Z:=*+<>¦|";
+const atlasCanvas = document.createElement("canvas");
+atlasCanvas.width = atlasCanvas.height = 1024;
+const a = atlasCanvas.getContext("2d");
+a.fillStyle = "#000";
+a.fillRect(0, 0, 1024, 1024);
+a.fillStyle = "#fff";
+a.font = "bold 92px 'MS Gothic', 'Yu Gothic', 'Noto Sans JP', monospace";
+a.textAlign = "center";
+a.textBaseline = "middle";
+for (let i = 0; i < 64; i++) {
+  a.save();
+  a.translate((i % 8) * 128 + 64, Math.floor(i / 8) * 128 + 66);
+  a.scale(-1, 1);
+  a.fillText(GLYPHS[i % GLYPHS.length], 0, 0);
+  a.restore();
+}
+const atlas = new THREE.CanvasTexture(atlasCanvas);
+atlas.anisotropy = 4;
+
+const FRAGMENT = `
+  uniform sampler2D uAtlas;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    if (vI < 0.004) discard;
+    vec2 pc = gl_PointCoord;
+    float gx = mod(vGlyph, 8.0), gy = floor(vGlyph / 8.0);
+    float g = texture2D(uAtlas, vec2((gx + pc.x) / 8.0, 1.0 - (gy + pc.y) / 8.0)).r;
+    gl_FragColor = vec4(vColor * g * vI, 1.0);
+  }`;
+const material = (vertexShader, uniforms) => new THREE.ShaderMaterial({
+  uniforms: {uAtlas: {value: atlas}, ...uniforms},
+  vertexShader,
+  fragmentShader: FRAGMENT,
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
+const shared = {uTime: {value: 0}, uScale: {value: 1}};
+
+/* ---------- shapes: 7000 points sampled on a surface or along edges ---------- */
+const N = 7000;
+
+function onSurface(geometry) {
+  const sampler = new MeshSurfaceSampler(new THREE.Mesh(geometry)).build();
+  const out = new Float32Array(N * 3), v = new THREE.Vector3();
+  for (let i = 0; i < N; i++) {
+    sampler.sample(v);
+    out.set([v.x, v.y, v.z], i * 3);
+  }
+  return out;
+}
+
+function onEdges(geometry) {
+  const e = new THREE.EdgesGeometry(geometry).attributes.position.array;
+  const segments = e.length / 6, out = new Float32Array(N * 3), jitter = () => (Math.random() - 0.5) * 0.05;
+  for (let i = 0; i < N; i++) {
+    const s = (i % segments) * 6, t = Math.random();
+    for (let j = 0; j < 3; j++) out[i * 3 + j] = e[s + j] + (e[s + 3 + j] - e[s + j]) * t + jitter();
+  }
+  return out;
+}
+
+function helix() {
+  const out = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const t = Math.random(), angle = t * Math.PI * 6, y = (t * 2 - 1) * 2.2;
+    if (i % 4 === 0) {
+      const rung = Math.round(t * 36) / 36, ra = rung * Math.PI * 6, f = Math.random() * 2 - 1;
+      out.set([Math.cos(ra) * 0.85 * f, (rung * 2 - 1) * 2.2, Math.sin(ra) * 0.85 * f], i * 3);
+    } else {
+      const side = i % 2 ? 0 : Math.PI, wobble = () => (Math.random() - 0.5) * 0.12;
+      out.set([Math.cos(angle + side) * 0.85 + wobble(), y + wobble(), Math.sin(angle + side) * 0.85 + wobble()], i * 3);
+    }
+  }
+  return out;
+}
+
+function text(word) {
+  const c = document.createElement("canvas");
+  c.width = 400;
+  c.height = 110;
+  const x = c.getContext("2d");
+  x.font = "900 92px Arial Black, Impact, sans-serif";
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  x.fillStyle = "#fff";
+  x.fillText(word, 200, 58);
+  const data = x.getImageData(0, 0, 400, 110).data, filled = [];
+  for (let y = 0; y < 110; y += 2) for (let i = 0; i < 400; i += 2) if (data[(y * 400 + i) * 4 + 3] > 128) filled.push([i, y]);
+  const out = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const [px, py] = filled[Math.floor(Math.random() * filled.length)];
+    out.set([(px - 200) / 68 + (Math.random() - 0.5) * 0.03, -(py - 55) / 68, (Math.random() - 0.5) * 0.9], i * 3);
+  }
+  return out;
+}
+
+const SHAPES = {
+  sphere: () => onSurface(new THREE.SphereGeometry(1.7, 64, 32)),
+  torus: () => onSurface(new THREE.TorusGeometry(1.45, 0.55, 48, 128)),
+  knot: () => onSurface(new THREE.TorusKnotGeometry(1.25, 0.36, 240, 32)),
+  cube: () => onSurface(new THREE.BoxGeometry(2.4, 2.4, 2.4)),
+  crystal: () => onEdges(new THREE.IcosahedronGeometry(2.0)),
+  helix,
+  text: () => text("FENIX"),
+};
+
+/* ---------- the figure ---------- */
+const geometry = new THREE.BufferGeometry();
+const positions = SHAPES.sphere();
+const seeds = Float32Array.from({length: N}, Math.random);
+geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
+const figureUniforms = {...shared, uCenter: {value: 7}, uSize: {value: 0.11}};
+scene.add(new THREE.Points(geometry, material(`
+  attribute float aSeed;
+  uniform float uTime; uniform float uScale; uniform float uSize; uniform float uCenter;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float dist = -mv.z;
+    float near = smoothstep(-1.0, 1.0, (uCenter - dist) / 1.8);
+    float b = 0.12 + 0.88 * near;
+    float flicker = 0.85 + 0.15 * sin(uTime * (2.0 + aSeed * 5.0) + aSeed * 30.0);
+    vI = b * flicker * 0.3;
+    vColor = mix(vec3(0.0, 0.3, 0.07), vec3(0.16, 1.0, 0.36), b);
+    vGlyph = floor(mod(aSeed * 977.0 + floor(uTime * (1.0 + aSeed * 4.0)) * step(0.45, aSeed), 64.0));
+    gl_PointSize = uSize * uScale / max(dist, 0.1);
+    gl_Position = projectionMatrix * mv;
+  }`, figureUniforms)));
+
+/* ---------- distant star dust for depth ---------- */
+const dustGeo = new THREE.BufferGeometry();
+const dust = new Float32Array(5000 * 3), dustSeed = new Float32Array(5000), dustBright = new Float32Array(5000);
+for (let i = 0; i < 5000; i++) {
+  dust.set(new THREE.Vector3().randomDirection().multiplyScalar(60 + Math.random() * 40).toArray(), i * 3);
+  dustSeed[i] = Math.random();
+  dustBright[i] = 0.05 + Math.pow(Math.random(), 4) * 0.7;
+}
+dustGeo.setAttribute("position", new THREE.BufferAttribute(dust, 3));
+dustGeo.setAttribute("aSeed", new THREE.BufferAttribute(dustSeed, 1));
+dustGeo.setAttribute("aBright", new THREE.BufferAttribute(dustBright, 1));
+scene.add(new THREE.Points(dustGeo, material(`
+  attribute float aSeed; attribute float aBright;
+  uniform float uTime; uniform float uScale;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    vI = aBright * (0.6 + 0.4 * sin(uTime * (0.4 + aSeed * 2.0) + aSeed * 60.0));
+    vColor = mix(vec3(0.0, 0.3, 0.07), vec3(0.16, 1.0, 0.36), aBright);
+    vGlyph = floor(mod(aSeed * 977.0 + floor(uTime * 0.5 * aSeed), 64.0));
+    gl_PointSize = 0.45 * uScale / -mv.z;
+    gl_Position = projectionMatrix * mv;
+  }`, {...shared})));
+
+/* ---------- light rain in a ring around the figure, always behind it ---------- */
+const COLUMNS = 700, CELLS = 90;
+const rainGeo = new THREE.BufferGeometry();
+const rainPos = new Float32Array(COLUMNS * CELLS * 3);
+const rainAttrs = {aCell: [], aSeed: [], aSpeed: [], aTrail: []};
+for (let c = 0; c < COLUMNS; c++) {
+  const angle = Math.random() * Math.PI * 2, radius = 12 + Math.random() * 34;
+  const x = Math.cos(angle) * radius, z = Math.sin(angle) * radius, top = 14 + Math.random() * 16;
+  const seed = Math.random(), speed = 6 + Math.random() * 8, trail = 8 + Math.random() * 14;
+  for (let i = 0; i < CELLS; i++) {
+    rainPos.set([x, top - i * 0.5, z], (c * CELLS + i) * 3);
+    rainAttrs.aCell.push(i);
+    rainAttrs.aSeed.push(seed);
+    rainAttrs.aSpeed.push(speed);
+    rainAttrs.aTrail.push(trail);
+  }
+}
+rainGeo.setAttribute("position", new THREE.BufferAttribute(rainPos, 3));
+for (const [name, values] of Object.entries(rainAttrs)) rainGeo.setAttribute(name, new THREE.BufferAttribute(Float32Array.from(values), 1));
+scene.add(new THREE.Points(rainGeo, material(`
+  attribute float aCell; attribute float aSeed; attribute float aSpeed; attribute float aTrail;
+  uniform float uTime; uniform float uScale;
+  varying vec3 vColor; varying float vI; varying float vGlyph;
+  void main() {
+    // two drops run down each tall column, half a cycle apart
+    float cycle = ${CELLS.toFixed(1)} + aTrail + 8.0;
+    float head = mod(uTime * aSpeed + aSeed * 97.0, cycle);
+    float d1 = head - aCell;
+    float d2 = mod(head + cycle * 0.5, cycle) - aCell;
+    float b1 = (d1 >= 0.0 && d1 < aTrail) ? pow(1.0 - d1 / aTrail, 1.7) : 0.0;
+    float b2 = (d2 >= 0.0 && d2 < aTrail) ? pow(1.0 - d2 / aTrail, 1.7) : 0.0;
+    float b = max(b1, b2);
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float dist = -mv.z;
+    vI = b * 0.22 * smoothstep(2.0, 6.0, dist);
+    vColor = mix(vec3(0.0, 0.3, 0.07), vec3(0.16, 1.0, 0.36), b);
+    float flicker = step(0.55, fract(aSeed * 13.7 + aCell * 0.37));
+    vGlyph = floor(mod(aSeed * 977.0 + aCell * 31.0 + flicker * floor(uTime * (3.0 + aSeed * 6.0)), 64.0));
+    gl_PointSize = 0.42 * uScale / max(dist, 0.1);
+    gl_Position = projectionMatrix * mv;
+  }`, {...shared})));
+
+/* ---------- morphing: symbols scatter and fly into the next shape ---------- */
+const scatter = Float32Array.from({length: N * 3}, () => Math.random() * 2 - 1);
+const delays = Float32Array.from({length: N}, () => Math.random() * 0.7);
+let from = positions.slice(), to = positions, morphStart = -1;
+const clock = new THREE.Clock();
+
+function morphToPoints(points) {
+  from = positions.slice();
+  to = points;
+  morphStart = clock.getElapsedTime();
+}
+
+const highlight = active => document.querySelectorAll(".shapes button").forEach(b => b.classList.toggle("on", b === active));
+
+document.querySelectorAll("[data-shape]").forEach(button => {
+  button.addEventListener("click", () => {
+    highlight(button);
+    morphToPoints(SHAPES[button.dataset.shape]());
+  });
+});
+
+/* ---------- your own 3D models: symbols assemble on the model's surface ---------- */
+const statusBox = document.getElementById("status");
+let statusTimer = 0;
+function showStatus(text, isError = false, hideAfter = 0) {
+  clearTimeout(statusTimer);
+  statusBox.textContent = text;
+  statusBox.classList.toggle("error", isError);
+  statusBox.style.opacity = "1";
+  if (hideAfter) statusTimer = setTimeout(() => { statusBox.style.opacity = "0"; }, hideAfter);
+}
+
+async function readModel(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  const buffer = await file.arrayBuffer();
+  if (ext === "glb" || ext === "gltf") {
+    const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js");
+    const {DRACOLoader} = await import("three/addons/loaders/DRACOLoader.js");
+    const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/");
+    loader.setDRACOLoader(draco);
+    return (await loader.parseAsync(buffer, "")).scene;
+  }
+  if (ext === "obj") {
+    const {OBJLoader} = await import("three/addons/loaders/OBJLoader.js");
+    return new OBJLoader().parse(new TextDecoder().decode(buffer));
+  }
+  if (ext === "fbx") {
+    const {FBXLoader} = await import("three/addons/loaders/FBXLoader.js");
+    return new FBXLoader().parse(buffer, "");
+  }
+  if (ext === "stl") {
+    const {STLLoader} = await import("three/addons/loaders/STLLoader.js");
+    return new THREE.Mesh(new STLLoader().parse(buffer));
+  }
+  if (ext === "ply") {
+    const {PLYLoader} = await import("three/addons/loaders/PLYLoader.js");
+    return new THREE.Mesh(new PLYLoader().parse(buffer));
+  }
+  throw new Error("format");
+}
+
+function triangleArea(geometry) {
+  const pos = geometry.attributes.position, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  let area = 0;
+  for (let i = 0; i + 2 < pos.count; i += 3) {
+    a.fromBufferAttribute(pos, i);
+    b.fromBufferAttribute(pos, i + 1).sub(a);
+    c.fromBufferAttribute(pos, i + 2).sub(a);
+    area += b.cross(c).length() / 2;
+  }
+  return area;
+}
+
+// Every mesh of the model gets a share of the symbols proportional to its surface area.
+function pointsFromModel(root) {
+  root.updateMatrixWorld(true);
+  const parts = [];
+  root.traverse(node => {
+    if (!node.isMesh || !node.geometry?.attributes?.position) return;
+    let geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", node.geometry.attributes.position.clone());
+    if (node.geometry.index) geo.setIndex(node.geometry.index.clone());
+    geo.applyMatrix4(node.matrixWorld);
+    if (geo.index) geo = geo.toNonIndexed();
+    const area = triangleArea(geo);
+    if (area > 0) parts.push({geo, area});
+  });
+  if (!parts.length) throw new Error("no-mesh");
+
+  const total = parts.reduce((sum, part) => sum + part.area, 0);
+  const out = new Float32Array(N * 3), v = new THREE.Vector3();
+  let k = 0;
+  parts.forEach((part, index) => {
+    const count = index === parts.length - 1 ? N - k : Math.round(N * part.area / total);
+    const sampler = new MeshSurfaceSampler(new THREE.Mesh(part.geo)).build();
+    for (let i = 0; i < count && k < N; i++, k++) {
+      sampler.sample(v);
+      out.set([v.x, v.y, v.z], k * 3);
+    }
+  });
+
+  // center the model and scale it to the size of the built-in shapes
+  const box = new THREE.Box3().setFromArray(out);
+  const center = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+  const scale = 3.6 / Math.max(size.x, size.y, size.z, 1e-6);
+  for (let i = 0; i < N; i++) {
+    out[i * 3] = (out[i * 3] - center.x) * scale;
+    out[i * 3 + 1] = (out[i * 3 + 1] - center.y) * scale;
+    out[i * 3 + 2] = (out[i * 3 + 2] - center.z) * scale;
+  }
+  return out;
+}
+
+const loadButton = document.getElementById("loadModel");
+const fileInput = document.getElementById("modelFile");
+
+/* ---------- saved models: kept in this browser (IndexedDB) and shown as buttons ---------- */
+function modelStore(mode, action) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open("matrix-models", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("models", {keyPath: "id"});
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction("models", mode);
+      const request = action(tx.objectStore("models"));
+      tx.oncomplete = () => resolve(request?.result);
+      tx.onerror = () => reject(tx.error);
+    };
+  });
+}
+
+function addModelButton(model) {
+  document.querySelector(`.model[data-id="${CSS.escape(model.id)}"]`)?.remove();
+  const group = document.createElement("span");
+  group.className = "model";
+  group.dataset.id = model.id;
+  const pick = document.createElement("button");
+  pick.textContent = model.name;
+  pick.addEventListener("click", () => {
+    highlight(pick);
+    morphToPoints(model.points.slice());
+  });
+  const remove = document.createElement("button");
+  remove.className = "remove";
+  remove.textContent = "×";
+  remove.title = `Remove ${model.name} (click twice)`;
+  remove.setAttribute("aria-label", `Remove ${model.name}`);
+  // Two clicks instead of confirm(): some embedded browsers silently block confirm dialogs.
+  let armTimer = 0;
+  remove.addEventListener("click", async () => {
+    if (!remove.classList.contains("armed")) {
+      remove.classList.add("armed");
+      remove.textContent = "delete?";
+      clearTimeout(armTimer);
+      armTimer = setTimeout(() => {
+        remove.classList.remove("armed");
+        remove.textContent = "×";
+      }, 3000);
+      return;
+    }
+    clearTimeout(armTimer);
+    const wasActive = pick.classList.contains("on");
+    group.remove();
+    try { await modelStore("readwrite", store => store.delete(model.id)); } catch { /* nothing saved to delete */ }
+    showStatus(`Removed: ${model.name}`, false, 3000);
+    if (wasActive) document.querySelector('[data-shape="sphere"]').click();
+  });
+  group.append(pick, remove);
+  loadButton.before(group);
+  return pick;
+}
+
+const modelName = fileName => fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim().slice(0, 24) || "Model";
+
+async function loadModel(file) {
+  showStatus(`Loading ${file.name}…`);
+  let model;
+  try {
+    const name = modelName(file.name);
+    model = {id: name.toLowerCase(), name, points: pointsFromModel(await readModel(file)), added: Date.now()};
+  } catch (error) {
+    console.error(error);
+    if (error.message === "format") showStatus("This format won't work. Use .glb, .gltf, .obj, .stl, .fbx or .ply.", true, 7000);
+    else if (error.message === "no-mesh") showStatus("This file has no 3D mesh to build a shape from.", true, 7000);
+    else showStatus("Couldn't open this model. If it's a .gltf with separate files, export it as .glb.", true, 8000);
+    return;
+  }
+  highlight(addModelButton(model));
+  morphToPoints(model.points.slice());
+  try {
+    await modelStore("readwrite", store => store.put(model));
+    showStatus(`Saved and assembled: ${model.name}`, false, 4000);
+  } catch {
+    showStatus(`Assembled ${model.name}, but this browser couldn't save it — it will be gone after a reload.`, true, 8000);
+  }
+}
+
+modelStore("readonly", store => store.getAll())
+  .then(models => models.sort((a, b) => a.added - b.added).forEach(addModelButton))
+  .catch(() => { /* storage unavailable: models just won't persist */ });
+
+loadButton.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) loadModel(fileInput.files[0]);
+  fileInput.value = "";
+});
+addEventListener("dragover", event => {
+  event.preventDefault();
+  document.body.classList.add("dragging");
+});
+addEventListener("dragleave", event => {
+  if (!event.relatedTarget) document.body.classList.remove("dragging");
+});
+addEventListener("drop", event => {
+  event.preventDefault();
+  document.body.classList.remove("dragging");
+  const file = event.dataTransfer.files[0];
+  if (file) loadModel(file);
+});
+
+addEventListener("resize", () => {
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+function tick() {
+  const t = clock.getElapsedTime();
+  if (morphStart >= 0) {
+    let done = true;
+    for (let i = 0; i < N; i++) {
+      let k = Math.min(1, Math.max(0, (t - morphStart - delays[i]) / 1.3));
+      if (k < 1) done = false;
+      const s = k * k * (3 - 2 * k), burst = Math.sin(Math.PI * k) * 1.4;
+      for (let j = 0; j < 3; j++) {
+        const n = i * 3 + j;
+        positions[n] = from[n] + (to[n] - from[n]) * s + scatter[n] * burst;
+      }
+    }
+    geometry.attributes.position.needsUpdate = true;
+    if (done) morphStart = -1;
+  }
+  shared.uTime.value = t;
+  shared.uScale.value = renderer.domElement.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+  figureUniforms.uCenter.value = camera.position.distanceTo(controls.target);
+  controls.update();
+  composer.render();
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

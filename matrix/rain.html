@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix — rain</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; }
+  .demos { position: fixed; top: 14px; right: 14px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 2; }
+  .demos a { padding: 6px 11px; border: 1px solid rgba(40, 255, 110, .3); border-radius: 8px; background: rgba(0, 14, 5, .75); color: #5dff95; font: 600 12px ui-monospace, Consolas, monospace; text-decoration: none; }
+  .demos a:hover { border-color: #2bff73; }
+  .demos a.on { background: #16c95a; border-color: #16c95a; color: #001a08; }
+</style>
+</head>
+<body>
+<nav class="demos">
+  <a href="../index.html">&larr; FENIX</a>
+  <a href="index.html">Flight</a>
+  <a href="rain.html" class="on">Rain</a>
+  <a href="shapes.html">3D shapes</a>
+</nav>
+<canvas id="c"></canvas>
+
+<script>
+const GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ012345789Z:=*+<>¦|";
+const CELL = 20, LEVELS = 24;
+// Same palette as the 3D demos: from almost invisible dark green to bright green, never white.
+const DARK = [0, 0.3, 0.07], BRIGHT = [0.16, 1, 0.36];
+const toSRGB = c => Math.round(255 * Math.min(1, c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055));
+const shade = b => `rgb(${[0, 1, 2].map(i => toSRGB((DARK[i] + (BRIGHT[i] - DARK[i]) * b) * b * 0.95)).join(",")})`;
+
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+let dpr, cols, rows, glyphs, drops, atlas;
+
+// Every symbol in every brightness level is drawn once, mirrored like in the film; frames just copy them.
+function buildAtlas() {
+  const px = CELL * dpr;
+  atlas = document.createElement("canvas");
+  atlas.width = 64 * px;
+  atlas.height = (LEVELS + 1) * px;
+  const a = atlas.getContext("2d");
+  a.font = `bold ${Math.round(17 * dpr)}px 'MS Gothic', 'Yu Gothic', monospace`;
+  a.textAlign = "center";
+  a.textBaseline = "middle";
+  for (let level = 0; level <= LEVELS; level++) {
+    const head = level === LEVELS;
+    a.fillStyle = shade(head ? 1 : (level + 1) / LEVELS);
+    a.shadowColor = head ? "rgba(40, 255, 110, .85)" : "transparent";
+    a.shadowBlur = head ? 5 * dpr : 0;
+    for (let g = 0; g < 64; g++) {
+      a.save();
+      a.translate(g * px + px / 2, level * px + px / 2 + dpr);
+      a.scale(-1, 1);
+      a.fillText(GLYPHS[g % GLYPHS.length], 0, 0);
+      a.restore();
+    }
+  }
+}
+
+const newDrop = start => ({
+  head: start ? Math.random() * rows * 1.5 - rows * 0.5 : -Math.random() * rows * 0.6,
+  speed: 7 + Math.random() * 18,
+  trail: 10 + Math.floor(Math.random() * 26),
+});
+
+function resize() {
+  dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = innerWidth * dpr;
+  canvas.height = innerHeight * dpr;
+  canvas.style.width = `${innerWidth}px`;
+  canvas.style.height = `${innerHeight}px`;
+  cols = Math.ceil(innerWidth / CELL);
+  rows = Math.ceil(innerHeight / CELL) + 1;
+  glyphs = Uint8Array.from({length: cols * rows}, () => Math.random() * 64);
+  drops = Array.from({length: cols}, () => (Math.random() < 0.35 ? [newDrop(true), newDrop(true)] : [newDrop(true)]));
+  buildAtlas();
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < glyphs.length * 0.004; i++) glyphs[Math.floor(Math.random() * glyphs.length)] = Math.random() * 64;
+
+  const px = CELL * dpr;
+  for (let c = 0; c < cols; c++) {
+    for (const drop of drops[c]) {
+      drop.head += drop.speed * dt;
+      const headRow = Math.floor(drop.head);
+      for (let k = 0; k < drop.trail; k++) {
+        const r = headRow - k;
+        if (r < 0 || r >= rows) continue;
+        const level = k === 0 ? LEVELS : Math.round((1 - k / drop.trail) ** 1.4 * (LEVELS - 1));
+        ctx.drawImage(atlas, glyphs[r * cols + c] * px, level * px, px, px, c * px, r * px, px, px);
+      }
+      if (headRow - drop.trail > rows) Object.assign(drop, newDrop(false));
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+addEventListener("resize", resize);
+resize();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

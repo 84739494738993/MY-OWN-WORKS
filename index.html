@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FENIX — projects</title>
+  <meta name="description" content="The Read &amp; Enjoy reader, the Wild Labyrinth game and free tools to download.">
+  <meta name="theme-color" content="#06050b">
+  <meta property="og:title" content="FENIX — projects">
+  <meta property="og:description" content="Games, a reading app and handy tools. Play, read, download.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='.5' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-family='monospace' font-size='30' font-weight='700' text-anchor='middle' fill='%2306050b'%3EF_%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <div class="bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+  <div class="spotlight" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="Back to top">
+      <span class="brand-mark">F_</span>
+      <span class="brand-name">FENIX</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#online">Online</a>
+      <a href="#download">Download</a>
+      <a class="nav-cta" href="https://starter-programist.itch.io/" target="_blank" rel="noopener">itch.io ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="pill reveal"><span class="pulse"></span>Portfolio · 5 projects</p>
+        <h1 class="reveal">
+          <span class="h1-line">Hi, I'm FENIX.</span>
+          <span class="h1-line">I build</span>
+          <span class="h1-typed"><span class="shimmer" id="typed">games</span><span class="caret" aria-hidden="true"></span></span>
+        </h1>
+        <p class="lead reveal">Everything I've made lives here. Jump into the game and the reader right in your browser, or grab handy tools in one click.</p>
+        <div class="actions reveal">
+          <a class="btn btn-primary" href="#online"><span>See projects</span></a>
+          <a class="btn btn-ghost" href="#download">Download tools ↓</a>
+        </div>
+        <div class="stats reveal">
+          <div class="stat"><b data-count="2">0</b><span>projects<br>online</span></div>
+          <div class="stat"><b data-count="3">0</b><span>tools<br>to download</span></div>
+          <div class="stat"><b data-count="100" data-suffix="%">0</b><span>free</span></div>
+        </div>
+      </div>
+
+      <div class="terminal hero-term reveal" role="img" aria-label="Terminal listing my projects">
+        <div class="term-bar"><i></i><i></i><i></i><span>~/projects — zsh</span></div>
+        <pre class="term-body" data-script="hero" data-loop></pre>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Python</span><span>✦</span><span>JavaScript</span><span>✦</span><span>Multiplayer</span><span>✦</span><span>yt-dlp</span><span>✦</span><span>PyAutoGUI</span><span>✦</span><span>Chrome Extensions</span><span>✦</span><span>WebGL</span><span>✦</span><span>Web Apps</span><span>✦</span>
+        <span>Python</span><span>✦</span><span>JavaScript</span><span>✦</span><span>Multiplayer</span><span>✦</span><span>yt-dlp</span><span>✦</span><span>PyAutoGUI</span><span>✦</span><span>Chrome Extensions</span><span>✦</span><span>WebGL</span><span>✦</span><span>Web Apps</span><span>✦</span>
+      </div>
+    </div>
+
+    <!-- ============ ONLINE ============ -->
+    <section id="online" class="section">
+      <div class="section-head reveal">
+        <p class="eyebrow">01 — online</p>
+        <h2 data-scramble>Run it right in your browser</h2>
+        <p class="section-sub">Nothing to install: just open it and go.</p>
+      </div>
+
+      <div class="online-grid">
+        <article class="card card-online reveal" data-tilt>
+          <div class="card-visual reader-visual" aria-hidden="true">
+            <div class="book">
+              <div class="page page-left">
+                <span class="ln" style="--w:92%"></span>
+                <span class="ln" style="--w:80%"></span>
+                <span class="ln" style="--w:88%"></span>
+                <span class="ln" style="--w:64%"></span>
+                <span class="ln" style="--w:90%"></span>
+                <span class="ln" style="--w:72%"></span>
+                <span class="ln" style="--w:84%"></span>
+              </div>
+              <div class="page page-right">
+                <p class="book-text">She found the old book by pure <mark class="word">serendipity<span class="tip">a happy accident</span></mark> one rainy evening…</p>
+                <span class="ln" style="--w:86%"></span>
+                <span class="ln" style="--w:70%"></span>
+                <span class="ln" style="--w:90%"></span>
+              </div>
+            </div>
+            <div class="flash f1"><div class="flash-inner"><b>journey</b><b class="back">a long trip</b></div></div>
+            <div class="flash f2"><div class="flash-inner"><b>bright</b><b class="back">full of light</b></div></div>
+          </div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="badge">Web app</span>
+              <span class="live"><span class="pulse"></span>online</span>
+            </div>
+            <h3>Read &amp; Enjoy</h3>
+            <p>A reader for books and language learning. Upload a book, read it right in your browser and learn new words with flashcards.</p>
+            <ul class="chips">
+              <li>.txt</li><li>.fb2</li><li>.epub</li><li>.rtf</li><li>.pdf</li><li>.docx</li>
+            </ul>
+            <a class="btn btn-primary" href="https://read-and-enjoy.onrender.com" target="_blank" rel="noopener"><span>Open the reader ↗</span></a>
+          </div>
+        </article>
+
+        <article class="card card-online reveal" data-tilt>
+          <div class="card-visual maze-visual" aria-hidden="true">
+            <svg class="maze" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="badge badge-pink">Game · itch.io</span>
+              <span class="live"><span class="pulse"></span>play online</span>
+            </div>
+            <h3>Wild Labyrinth</h3>
+            <p>A multiplayer maze that never stops changing. Collect four crystals of your color, steal your rivals' gems, rotate maze tiles, teleport — and be the first to get back to your corner. Watch out for bears!</p>
+            <ul class="chips">
+              <li>up to 4 players</li><li>bots</li><li>private rooms</li><li>plays on mobile</li>
+            </ul>
+            <a class="btn btn-primary btn-pink" href="https://starter-programist.itch.io/wild-labrynth" target="_blank" rel="noopener"><span>Play ↗</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ DOWNLOAD ============ -->
+    <section id="download" class="section">
+      <div class="section-head reveal">
+        <p class="eyebrow">02 — download</p>
+        <h2 data-scramble>Handy tools</h2>
+        <p class="section-sub">A ready-to-run .exe for Windows or the source code — your choice.</p>
+      </div>
+
+      <div class="dl-grid">
+        <article class="card dl-card reveal" data-tilt>
+          <div class="dl-head">
+            <div class="dl-icon icon-red">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" class="fill"/></svg>
+            </div>
+            <div>
+              <span class="badge">Tool · Windows</span>
+              <h3>YouTube Channel Links</h3>
+            </div>
+          </div>
+          <p>Collects links to every video on a YouTube channel. Paste the channel URL — get the full list of videos.</p>
+          <div class="terminal mini">
+            <div class="term-bar"><i></i><i></i><i></i><span>YouTube_Channel_Links.exe</span></div>
+            <pre class="term-body" data-script="youtube"></pre>
+          </div>
+          <ul class="chips"><li>Python</li><li>yt-dlp</li></ul>
+          <div class="dl-actions">
+            <a class="btn btn-primary" href="downloads/YouTube_Channel_Links.exe" download><span>Download .exe</span><small>21.5 MB</small></a>
+            <a class="btn btn-ghost" href="code.html?file=youtube">Source .py</a>
+          </div>
+          <p class="hint">To run from source: <code>pip install yt-dlp</code></p>
+        </article>
+
+        <article class="card dl-card reveal" data-tilt>
+          <div class="dl-head">
+            <div class="dl-icon icon-cyan">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 9h20M6 4v5M11 4v5"/></svg>
+            </div>
+            <div>
+              <span class="badge">Tool · Windows</span>
+              <h3>Browser Tab Links</h3>
+            </div>
+          </div>
+          <p>Copies the URLs of all open browser tabs. Enter the number of tabs, switch to your browser — the tool walks through them and prints every link.</p>
+          <div class="terminal mini">
+            <div class="term-bar"><i></i><i></i><i></i><span>Browser_Tab_Links.exe</span></div>
+            <pre class="term-body" data-script="tabs"></pre>
+          </div>
+          <ul class="chips"><li>Python</li><li>PyAutoGUI</li><li>pyperclip</li></ul>
+          <div class="dl-actions">
+            <a class="btn btn-primary" href="downloads/Browser_Tab_Links.exe" download><span>Download .exe</span><small>15.2 MB</small></a>
+            <a class="btn btn-ghost" href="code.html?file=tabs">Source .py</a>
+          </div>
+          <p class="hint">To run from source: <code>pip install pyautogui pyperclip</code></p>
+        </article>
+
+        <article class="card dl-card reveal" data-tilt>
+          <div class="dl-head">
+            <div class="dl-icon icon-violet">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h3a2 2 0 1 1 4 0h3v5a2 2 0 1 1 0 4v5h-5a2 2 0 1 0-4 0H5v-5a2 2 0 1 0 0-4V3z"/></svg>
+            </div>
+            <div>
+              <span class="badge badge-violet">Extension · Chrome</span>
+              <h3>NotebookLM Deduper</h3>
+            </div>
+          </div>
+          <p>Finds identical sources in a NotebookLM notebook and removes the extras in a couple of clicks. Matches by link, or by title when there's no link.</p>
+          <div class="popup-mock" data-popup>
+            <div class="pm-title">NotebookLM Duplicates</div>
+            <div class="pm-btn">Find duplicates</div>
+            <div class="pm-status">Open a notebook and press the button.</div>
+            <div class="pm-list">
+              <div>youtube.com/watch?v=dQw… — remove: 2</div>
+              <div>Lecture 3. Neural networks — remove: 1</div>
+              <div>medium.com/@ai/attention… — remove: 1</div>
+            </div>
+            <div class="pm-btn pm-danger">Remove found duplicates</div>
+          </div>
+          <div class="dl-actions">
+            <a class="btn btn-primary btn-violet" href="downloads/notebooklm_deduper.zip" download><span>Download .zip</span><small>5 KB</small></a>
+          </div>
+          <details class="install">
+            <summary>How to install</summary>
+            <ol>
+              <li>Unzip the archive — you'll get the <code>notebooklm_deduper</code> folder.</li>
+              <li>Open <code>chrome://extensions</code> in Chrome.</li>
+              <li>Turn on “Developer mode” in the top right corner.</li>
+              <li>Click “Load unpacked” and pick the folder.</li>
+            </ol>
+          </details>
+        </article>
+      </div>
+
+      <div class="notice reveal">
+        <div class="notice-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+        </div>
+        <p><strong>Windows may warn you about an “unknown publisher”.</strong> That happens with any program without a paid code-signing certificate. Click “More info” → “Run anyway”. Rather not run an .exe? Download the source and run it with Python.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-big"><span class="shimmer">Thanks for stopping by!</span></p>
+    <div class="footer-row">
+      <span>© <span id="year">2026</span> FENIX</span>
+      <nav>
+        <a href="https://read-and-enjoy.onrender.com" target="_blank" rel="noopener">Read &amp; Enjoy</a>
+        <a href="https://starter-programist.itch.io/wild-labrynth" target="_blank" rel="noopener">Wild Labyrinth</a>
+        <a href="https://starter-programist.itch.io/" target="_blank" rel="noopener">itch.io</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="script.js?v=5"></script>
+</body>
+</html>

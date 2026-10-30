@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source code — FENIX</title>
+  <meta name="description" content="Source code of FENIX's tools, with a line-by-line walkthrough.">
+  <meta name="theme-color" content="#06050b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='.5' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%23f472b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-family='monospace' font-size='30' font-weight='700' text-anchor='middle' fill='%2306050b'%3EF_%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="code.css?v=6">
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <div class="bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="grid"></div>
+    <div class="noise"></div>
+  </div>
+  <div class="spotlight" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Home">
+      <span class="brand-mark">F_</span>
+      <span class="brand-name">FENIX</span>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html#online">Online</a>
+      <a href="index.html#download">Download</a>
+      <a class="nav-cta" href="https://starter-programist.itch.io/" target="_blank" rel="noopener">itch.io ↗</a>
+    </nav>
+  </header>
+
+  <main class="code-page">
+    <a class="back-link" href="index.html#download"><span aria-hidden="true">←</span> All tools</a>
+
+    <section class="code-hero reveal">
+      <p class="eyebrow">source code</p>
+      <h1 class="code-title" id="codeTitle" data-scramble>Source code</h1>
+      <p class="code-sub" id="codeAbout"></p>
+      <ul class="chips" id="codeMeta"></ul>
+      <div class="actions" id="codeActions">
+        <button class="btn btn-primary" id="copyCode" type="button"><span>Copy code</span></button>
+        <a class="btn btn-ghost" id="pyLink" download>Download .py</a>
+        <a class="btn btn-ghost" id="exeLink" download>Download .exe <small id="exeSize"></small></a>
+      </div>
+    </section>
+
+    <div class="code-layout" id="codeLayout">
+      <div class="code-window reveal">
+        <div class="code-tabs">
+          <i></i><i></i><i></i>
+          <span class="code-tab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-4 0-4 1.7-4 1.7V7h4.2v.7H6.3S3 7.3 3 12s2.8 4.5 2.8 4.5H7.5v-2.2s-.1-2.8 2.8-2.8h4.2s2.7 0 2.7-2.6V5.6S17.6 3 12 3z" class="py-blue"/><path d="M12 21c4 0 4-1.7 4-1.7V17h-4.2v-.7h5.9s3.3.4 3.3-4.3-2.8-4.5-2.8-4.5h-1.7v2.2s.1 2.8-2.8 2.8H9.5s-2.7 0-2.7 2.6v3.3S6.4 21 12 21z" class="py-yellow"/></svg>
+            <span id="fileName">file.py</span>
+          </span>
+          <span class="code-lang">Python 3</span>
+        </div>
+        <div class="code-scroll">
+          <ol class="code-lines" id="codeLines" aria-label="Source code"></ol>
+        </div>
+        <div class="code-status">
+          <span><span class="status-dot"></span> <span id="statusLeft">loading…</span></span>
+          <span id="statusRight">UTF-8</span>
+        </div>
+      </div>
+
+      <aside class="code-side">
+        <div class="side-panel reveal">
+          <h2 class="side-title">How it works</h2>
+          <p class="side-hint">Hover a step to light up its lines.</p>
+          <ol class="notes" id="notes"></ol>
+        </div>
+        <div class="side-panel reveal">
+          <h2 class="side-title">Run it yourself</h2>
+          <ol class="run-steps" id="runSteps"></ol>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer footer-small">
+    <div class="footer-row">
+      <span>© <span id="year">2026</span> FENIX</span>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="index.html#download">All tools</a>
+        <a href="https://starter-programist.itch.io/" target="_blank" rel="noopener">itch.io</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="script.js?v=5"></script>
+  <script src="sources.js?v=6"></script>
+  <script src="code.js?v=6"></script>
+</body>
+</html>

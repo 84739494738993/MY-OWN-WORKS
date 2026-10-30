@@ -737,6 +737,112 @@ h1 { font-size: clamp(36px, 5.6vw, 68px); line-height: 1.04; font-weight: 800; }
 .footer-row a { color: var(--muted); transition: color .2s; }
 .footer-row a:hover { color: var(--text); }
 
+/* ---------- extra card colors (pick one per project in projects.js) ---------- */
+.badge-red { color: var(--red); background: rgba(251, 113, 133, .1); border-color: rgba(251, 113, 133, .3); }
+.badge-amber { color: var(--amber); background: rgba(251, 191, 36, .1); border-color: rgba(251, 191, 36, .3); }
+.badge-lime { color: var(--lime); background: rgba(163, 230, 53, .1); border-color: rgba(163, 230, 53, .3); }
+.icon-pink { color: var(--pink); background: rgba(244, 114, 182, .12); box-shadow: 0 0 30px -8px rgba(244, 114, 182, .7); }
+.icon-amber { color: var(--amber); background: rgba(251, 191, 36, .12); box-shadow: 0 0 30px -8px rgba(251, 191, 36, .7); }
+.icon-lime { color: var(--lime); background: rgba(163, 230, 53, .12); box-shadow: 0 0 30px -8px rgba(163, 230, 53, .7); }
+.btn-amber { background-image: linear-gradient(110deg, #f97316, var(--amber) 50%, var(--pink)); box-shadow: 0 10px 30px -10px rgba(251, 191, 36, .7); }
+.btn-lime { background-image: linear-gradient(110deg, #16a34a, var(--lime) 55%, var(--cyan)); box-shadow: 0 10px 30px -10px rgba(163, 230, 53, .7); }
+.dl-emoji { font-size: 28px; line-height: 1; }
+
+/* ---------- automatic picture for new projects ---------- */
+.auto-visual {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 55%),
+    radial-gradient(circle at 15% 15%, rgba(139, 92, 246, .22), transparent 50%),
+    radial-gradient(circle at 85% 90%, rgba(34, 211, 238, .16), transparent 50%),
+    var(--bg-2);
+}
+.auto-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at 50% 55%, #000 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 10%, transparent 70%);
+  animation: gridmove 8s linear infinite;
+}
+@keyframes gridmove { to { background-position: 32px 32px; } }
+.auto-ring {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: ringspin 14s linear infinite;
+}
+.auto-ring.r2 { width: 240px; height: 240px; border-style: solid; border-color: color-mix(in srgb, var(--accent) 22%, transparent); animation-duration: 22s; animation-direction: reverse; }
+.auto-ring.r3 { width: 320px; height: 320px; border-style: dotted; border-color: rgba(255, 255, 255, .12); animation-duration: 30s; }
+@keyframes ringspin { to { transform: rotate(360deg); } }
+.auto-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .28), color-mix(in srgb, var(--accent) 38%, transparent) 60%);
+  box-shadow: 0 0 60px color-mix(in srgb, var(--accent) 65%, transparent), inset 0 0 30px rgba(255, 255, 255, .12);
+  backdrop-filter: blur(6px);
+  animation: orb 4.5s ease-in-out infinite;
+}
+@keyframes orb { 50% { translate: 0 -10px; box-shadow: 0 0 90px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 0 30px rgba(255, 255, 255, .18); } }
+.auto-emoji { font-size: 50px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)); }
+/* each dot is an invisible circle that spins; ::after is the glowing dot on its edge */
+.auto-dot { position: absolute; top: calc(50% - 89px); left: calc(50% - 89px); width: 178px; height: 178px; }
+.auto-dot::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+}
+.auto-dot.d1 { animation: ringspin 6s linear infinite; }
+.auto-dot.d2 { animation: ringspin 9s linear -3s infinite reverse; }
+.auto-dot.d3 { width: 258px; height: 258px; top: calc(50% - 129px); left: calc(50% - 129px); animation: ringspin 12s linear infinite; }
+.auto-word {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: right;
+  font: 800 30px/1 var(--font-display);
+  letter-spacing: -.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, .16);
+}
+
+/* ---------- own screenshots ---------- */
+.image-visual { padding: 0; }
+.image-frame, .dl-shot { overflow: hidden; }
+.image-frame { position: absolute; inset: 0; }
+.image-frame img, .dl-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2, .8, .2, 1); }
+.image-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(6, 5, 11, .55));
+  pointer-events: none;
+}
+.card:hover .image-frame img, .card:hover .dl-shot img { transform: scale(1.06); }
+.dl-shot { height: 190px; border-radius: 14px; border: 1px solid var(--line); box-shadow: 0 24px 50px -24px rgba(0, 0, 0, .9); }
+
 /* ---------- reveal on scroll ---------- */
 .js .reveal {
   opacity: 0;

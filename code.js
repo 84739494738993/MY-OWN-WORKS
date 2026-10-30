@@ -1,40 +1,26 @@
-/* Source code viewer: code.html?file=youtube | tabs */
+/* Source code viewer: code.html?file=<project id from projects.js> */
 
-const FILES = {
-  youtube: {
-    file: "youtube_channel_links.py",
-    title: "YouTube Channel Links",
-    about: "Collects links to every video on a YouTube channel. Paste the channel URL — get the full list of videos.",
-    exe: "YouTube_Channel_Links.exe",
-    exeSize: "21.5 MB",
-    deps: "pip install yt-dlp",
-    libs: ["yt-dlp"],
-    notes: [
-      [1, 1, "Imports yt-dlp — the library that knows how to talk to YouTube."],
-      [4, 5, "Asks for the channel link, strips extra parameters and points it at the channel's Videos tab."],
-      [7, 8, "Grabs the list of videos without downloading a single one (extract_flat)."],
-      [10, 11, "Prints the link of every video, one per line."],
-      [13, 13, "Waits for Enter, so the window doesn't close before you copy the links."],
-    ],
-  },
-  tabs: {
-    file: "browser_tab_links.py",
-    title: "Browser Tab Links",
-    about: "Copies the URLs of all open browser tabs. Enter the number of tabs, switch to your browser — the tool walks through them and prints every link.",
-    exe: "Browser_Tab_Links.exe",
-    exeSize: "15.2 MB",
-    deps: "pip install pyautogui pyperclip",
-    libs: ["PyAutoGUI", "pyperclip"],
-    notes: [
-      [1, 3, "Loads the tools: time for pauses, pyautogui to press keys, pyperclip to read the clipboard."],
-      [5, 7, "Asks how many tabs to visit, then gives you 5 seconds to switch to the browser."],
-      [10, 11, "Ctrl+L selects the address bar of the current tab."],
-      [13, 14, "Ctrl+C copies the URL to the clipboard."],
-      [16, 18, "Ctrl+Tab jumps to the next tab, and the copied URL is printed."],
-      [20, 21, "Done! Waits for Enter before closing."],
-    ],
-  },
-};
+// Turns a project from projects.js into what this page needs.
+function entryFor(id) {
+  const project = (window.PROJECTS || []).find(p => p.id === id && p.code?.file);
+  if (!project) return null;
+  const notes = (project.code.notes || []).map(({lines, text}) => {
+    const [from, to = from] = String(lines).split(/[-–]/).map(n => parseInt(n, 10));
+    return [from, to, text];
+  }).filter(([from, to, text]) => from > 0 && to >= from && text);
+  return {
+    file: project.code.file.split("/").pop(),
+    path: project.code.file,
+    title: project.title,
+    about: project.description || "",
+    exe: project.download?.file,
+    exeLabel: project.download?.label || "Download",
+    exeSize: project.download?.size || "",
+    deps: project.code.install,
+    libs: (project.tags || []).filter(tag => !/^python/i.test(tag)),
+    notes,
+  };
+}
 
 /* ---------- Python syntax highlighting ---------- */
 const PY_KEYWORDS = new Set(("and as assert async await break class continue def del elif else except finally for " +
@@ -112,9 +98,15 @@ function fillPage(entry) {
   document.getElementById("codeTitle").textContent = entry.title;
   document.getElementById("codeAbout").textContent = entry.about;
   document.getElementById("fileName").textContent = entry.file;
-  document.getElementById("pyLink").href = `downloads/${entry.file}`;
-  document.getElementById("exeLink").href = `downloads/${entry.exe}`;
-  document.getElementById("exeSize").textContent = entry.exeSize;
+  document.getElementById("pyLink").href = entry.path;
+  const exeLink = document.getElementById("exeLink");
+  if (entry.exe) {
+    exeLink.href = entry.exe;
+    exeLink.firstChild.textContent = `${entry.exeLabel} `;
+    document.getElementById("exeSize").textContent = entry.exeSize;
+  } else {
+    exeLink.hidden = true;
+  }
 
   const runSteps = document.getElementById("runSteps");
   const python = el("li");
@@ -127,7 +119,8 @@ function fillPage(entry) {
   python.append(pythonText);
   runSteps.append(python);
 
-  for (const [text, command] of [["Install the libraries", entry.deps], ["Run the script", `python ${entry.file}`]]) {
+  const commands = [["Install the libraries", entry.deps], ["Run the script", `python ${entry.file}`]];
+  for (const [text, command] of commands.filter(([, command]) => command)) {
     const step = el("li");
     const line = el("div", "cmd-line");
     const copy = el("button", "copy-mini");
@@ -141,17 +134,24 @@ function fillPage(entry) {
     runSteps.append(step);
   }
 
-  const skip = el("li", "run-skip");
-  const exe = el("a", "inline-link", `grab the .exe (${entry.exeSize})`);
-  exe.href = `downloads/${entry.exe}`;
-  exe.setAttribute("download", "");
-  skip.append("Or skip all that and ", exe, ".");
-  runSteps.append(skip);
+  if (entry.exe) {
+    const skip = el("li", "run-skip");
+    const extension = entry.exe.split(".").pop();
+    const exe = el("a", "inline-link", `grab the .${extension}${entry.exeSize ? ` (${entry.exeSize})` : ""}`);
+    exe.href = entry.exe;
+    exe.setAttribute("download", "");
+    skip.append("Or skip all that and ", exe, ".");
+    runSteps.append(skip);
+  }
 }
 
 function buildNotes(entry, rows) {
   const lines = document.getElementById("codeLines");
   const notes = document.getElementById("notes");
+  if (!entry.notes.length) {
+    notes.closest(".side-panel").hidden = true;
+    return;
+  }
   const setFocus = range => {
     lines.classList.toggle("focus-mode", Boolean(range));
     rows.forEach((row, i) => row.classList.toggle("hl", Boolean(range) && i + 1 >= range[0] && i + 1 <= range[1]));
@@ -202,22 +202,22 @@ async function typeCode(source, rows, status) {
 
 // Over http(s) read the real file; opened from disk (file://) browsers block fetch,
 // so fall back to the copy embedded in sources.js.
-async function loadSource(file) {
+async function loadSource(entry) {
   if (location.protocol.startsWith("http")) {
     try {
-      const response = await fetch(`downloads/${file}`);
+      const response = await fetch(entry.path);
       if (response.ok) return await response.text();
     } catch {
       // fall through to the embedded copy
     }
   }
-  const embedded = window.SOURCES?.[file];
-  if (embedded === undefined) throw new Error(`No source for ${file}`);
+  const embedded = window.SOURCES?.[entry.file];
+  if (embedded === undefined) throw new Error(`No source for ${entry.file}`);
   return embedded;
 }
 
 async function main() {
-  const entry = FILES[new URLSearchParams(location.search).get("file")];
+  const entry = entryFor(new URLSearchParams(location.search).get("file"));
   if (!entry) {
     showNotFound();
     return;
@@ -228,7 +228,7 @@ async function main() {
   const linesBox = document.getElementById("codeLines");
   let source;
   try {
-    const raw = (await loadSource(entry.file)).replace(/\r\n/g, "\n");
+    const raw = (await loadSource(entry)).replace(/\r\n/g, "\n");
     source = raw.replace(/\n+$/, "");
     // A blob link really downloads the file, even when the page is opened from disk.
     const pyLink = document.getElementById("pyLink");

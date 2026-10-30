@@ -31,37 +31,33 @@ async function typeWords(target) {
 }
 
 /* ---------- terminals ---------- */
+// `ls ~/projects` in the hero lists the folders of projects.js, two per line.
+function projectFolders() {
+  const names = (window.PROJECTS || []).map(p => `${p.id}/`);
+  const width = Math.max(0, ...names.map(name => name.length)) + 3;
+  if (width * 2 > 46) return names.join("\n");
+  const rows = [];
+  for (let i = 0; i < names.length; i += 2) rows.push(names.slice(i, i + 2).map(n => n.padEnd(width)).join("").trimEnd());
+  return rows.join("\n");
+}
+
 const TERMINALS = {
   hero: [
     {cmd: "whoami"},
     {out: "fenix", cls: "v"},
     {cmd: "ls ~/projects"},
-    {out: "read-and-enjoy/     wild-labyrinth/\nyoutube-links/      tab-links/\nnotebooklm-deduper/", cls: "c"},
+    {out: projectFolders(), cls: "c"},
     {cmd: "cat about.txt"},
     {out: "I build games, web apps and tools\nthat save you time. Everything is free :)"},
     {cmd: "./welcome --style=neon"},
     {out: "✔ Welcome! Scroll down ↓", cls: "ok"},
   ],
-  youtube: [
-    {ask: "Paste a YouTube channel link: ", type: "https://youtube.com/@Google"},
-    {out: "https://www.youtube.com/watch?v=DDjr6gXqtN8", cls: "c", delay: 700},
-    {out: "https://www.youtube.com/watch?v=lL7L6DiGeLc", cls: "c"},
-    {out: "https://www.youtube.com/watch?v=WMjVP7QQyDI", cls: "c"},
-    {out: "… and 2027 more links", cls: "dim", delay: 400},
-    {out: "Press Enter to exit..."},
-  ],
-  tabs: [
-    {ask: "How many tabs are open in the browser? ", type: "3"},
-    {out: "Script started! Quickly switch to the browser window...", delay: 900},
-    {out: "https://read-and-enjoy.onrender.com/", cls: "c", delay: 500},
-    {out: "https://starter-programist.itch.io/wild-labrynth", cls: "c", delay: 500},
-    {out: "https://notebooklm.google.com/", cls: "c", delay: 500},
-    {out: "=== DONE ===", cls: "ok"},
-  ],
 };
 
 async function runTerminal(pre) {
-  const lines = TERMINALS[pre.dataset.script];
+  // Card terminals get their lines from projects.js (see render.js).
+  const lines = pre.terminalLines || TERMINALS[pre.dataset.script];
+  if (!lines?.length) return;
   const instant = reduceMotion;
   const caret = el("span", "term-caret");
   pre.textContent = "";
@@ -318,7 +314,7 @@ function initMaze(svg) {
     svg.classList.add("fading");
     await sleep(700);
     running = false;
-    if (visible) cycle();
+    if (visible && svg.isConnected) cycle();
   }
 
   if (reduceMotion) {
@@ -340,6 +336,14 @@ function onReveal(node) {
   node.querySelectorAll("[data-popup]").forEach(runPopup);
 }
 
+// Starts all animations of one card right away (used by the editor's live preview).
+function activateCard(card) {
+  card.classList.add("in");
+  card.querySelectorAll("pre[data-script]").forEach(runTerminal);
+  card.querySelectorAll("[data-popup]").forEach(runPopup);
+  card.querySelectorAll(".maze").forEach(initMaze);
+}
+
 document.querySelectorAll(".online-grid, .dl-grid, .hero-copy, .code-side").forEach(group => {
   [...group.querySelectorAll(":scope > .reveal")].forEach((item, i) => item.style.setProperty("--d", `${i * 0.12}s`));
 });
@@ -359,8 +363,8 @@ let pointerFrame = 0;
 addEventListener("pointermove", e => {
   cancelAnimationFrame(pointerFrame);
   pointerFrame = requestAnimationFrame(() => {
-    spotlight.style.setProperty("--x", `${e.clientX}px`);
-    spotlight.style.setProperty("--y", `${e.clientY}px`);
+    spotlight?.style.setProperty("--x", `${e.clientX}px`);
+    spotlight?.style.setProperty("--y", `${e.clientY}px`);
   });
 }, {passive: true});
 
@@ -383,7 +387,7 @@ document.querySelectorAll("[data-tilt]").forEach(card => {
 const progress = document.querySelector(".progress");
 const updateProgress = () => {
   const max = document.documentElement.scrollHeight - innerHeight;
-  progress.style.setProperty("--p", max > 0 ? scrollY / max : 0);
+  progress?.style.setProperty("--p", max > 0 ? scrollY / max : 0);
 };
 addEventListener("scroll", updateProgress, {passive: true});
 updateProgress();
@@ -392,9 +396,8 @@ updateProgress();
 const year = document.getElementById("year");
 const typed = document.getElementById("typed");
 const heroTerminal = document.querySelector(".hero-term pre");
-const maze = document.querySelector(".maze");
 
 if (year) year.textContent = new Date().getFullYear();
 if (typed && !reduceMotion) typeWords(typed);
 if (heroTerminal) setTimeout(() => runTerminal(heroTerminal), reduceMotion ? 0 : 700);
-if (maze) initMaze(maze);
+document.querySelectorAll(".maze").forEach(initMaze);
